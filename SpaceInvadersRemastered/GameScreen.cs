@@ -11,24 +11,37 @@ using System.Media;
 
 namespace SpaceInvadersRemastered
 {
-    public partial class GameScreen: UserControl
+    public partial class GameScreen : UserControl
     {
         //Global Variables
-
         Player player = new Player();
         Aliens alien = new Aliens();
-        
-        //MagicBus mothership = new MagicBus();
-        //List<Aliens> alienRow1 = new List<Aliens>();
-        //List<Aliens> alienRow2 = new List<Aliens>();
-        //List<Aliens> alienRow3 = new List<Aliens>();
-        //List<Aliens> alienRow4 = new List<Aliens>();
+
+        public static int alienBulletSpeed = 6;
+        public static int playerLives = 3;
+        public static int alienSpeed = 1;
+        public static int alienBulletX = 1000;
+        public static int alienBulletY = 1000;
+        public static int alienBulletWidth = 5;
+        public static int alienBulletHeight = 15;
+        public static int t;
+        public static int randomFire;
+        public static int randColumn;
+
+        List<Rectangle> alienRow1 = new List<Rectangle>();
+        List<Rectangle> alienRow2 = new List<Rectangle>();
+        List<Rectangle> alienRow3 = new List<Rectangle>();
+        List<Rectangle> alienRow4 = new List<Rectangle>();
+
+        Random alienBullets = new Random();
+        Random alienRow = new Random();
 
         public static int screenWidth;
         public static int screenHeight;
 
-        
         Rectangle mothership = new Rectangle(-40, -50, 40, 20);
+        Rectangle alienBullet = new Rectangle(alienBulletX, alienBulletY, 5, 15);
+        Rectangle bullet = new Rectangle(-10, -10, 5, 15);
 
         Rectangle bunker1 = new Rectangle(50, 430, 80, 20);
         Rectangle bunker2 = new Rectangle(250, 430, 80, 20);
@@ -46,10 +59,8 @@ namespace SpaceInvadersRemastered
         Rectangle bunker4Leg2 = new Rectangle(710, 430, 20, 40);
 
         //Gameplay variable
-        
         public int mothershipSpeed = 2;
-        
-        
+        public int mothershipGenerated, mothershipPoints;
 
         //Bunker health
         public int bunker1Health = 16;
@@ -68,17 +79,9 @@ namespace SpaceInvadersRemastered
         //Key press variables
         bool leftPressed, rightPressed, spacePressed;
 
-      
-       
-
         //Random generators and their variables
         Random mothershipGenerate = new Random();
         Random mothershipValue = new Random();
-        
-
-        public int mothershipGenerated, mothershipPoints;
-
-        Rectangle bullet = new Rectangle(-10, -10, 5, 15);
 
         //Brushes
         SolidBrush greenBrush = new SolidBrush(Color.LawnGreen);
@@ -144,7 +147,7 @@ namespace SpaceInvadersRemastered
         private void gameTimer_Tick(object sender, EventArgs e)
         {
             scoreNumber.Text = $"{player.playerScore}";
-            livesNumber.Text = $"{Aliens.playerLives}";
+            livesNumber.Text = $"{playerLives}";
 
             if (rightPressed == true)
             {
@@ -182,28 +185,263 @@ namespace SpaceInvadersRemastered
 
         public void alienMovement()
         {
-            
+            int endLine = 0;
+
+            //Making aliens bounce back and forth
+            for (int i = 0; i < alienRow1.Count; i++)
+            {
+                if (alienRow1[i].X == 780)
+                {
+                    alienSpeed = -1;
+                    endLine++;
+                }
+
+                if (alienRow1[i].X == 0)
+                {
+                    alienSpeed = 1;
+                    endLine++;
+                }
+            }
+
+            for (int i = 0; i < alienRow2.Count; i++)
+            {
+                if (alienRow2[i].X == 780)
+                {
+                    alienSpeed = -1;
+                    endLine++;
+                }
+
+                if (alienRow2[i].X == 0)
+                {
+                    alienSpeed = 1;
+                    endLine++;
+                }
+            }
+
+            for (int i = 0; i < alienRow3.Count; i++)
+            {
+                if (alienRow3[i].X == 780)
+                {
+                    alienSpeed = -1;
+                    endLine++;
+                }
+
+                if (alienRow3[i].X == 0)
+                {
+                    alienSpeed = 1;
+                    endLine++;
+                }
+            }
+
+            for (int i = 0; i < alienRow4.Count; i++)
+            {
+                if (alienRow4[i].X == 780)
+                {
+                    alienSpeed = -1;
+                    endLine++;
+                }
+
+                if (alienRow4[i].X == 0)
+                {
+                    alienSpeed = 1;
+                    endLine++;
+                }
+            }
+
+            //Making aliens move
+            for (int i = 0; i < alienRow1.Count(); i++)
+            {
+                int x = alienRow1[i].X + alienSpeed;
+                alienRow1[i] = new Rectangle(x, alienRow1[i].Y + endLine * 10, 25, 25);
+            }
+
+            for (int i = 0; i < alienRow2.Count(); i++)
+            {
+                int x = alienRow2[i].X + alienSpeed;
+                alienRow2[i] = new Rectangle(x, alienRow2[i].Y + endLine * 10, 25, 25);
+            }
+
+            for (int i = 0; i < alienRow3.Count(); i++)
+            {
+                int x = alienRow3[i].X + alienSpeed;
+                alienRow3[i] = new Rectangle(x, alienRow3[i].Y + endLine * 10, 25, 25);
+            }
+
+            for (int i = 0; i < alienRow4.Count(); i++)
+            {
+                int x = alienRow4[i].X + alienSpeed;
+                alienRow4[i] = new Rectangle(x, alienRow4[i].Y + endLine * 10, 25, 25);
+            }
+
+            //Respawning aliens slightly lower than last time
+            if (alienRow1.Count == 0 && alienRow2.Count == 0 && alienRow3.Count == 0 && alienRow4.Count == 0)
+            {
+                t++;
+                playerLives++;
+
+                for (int i = 0; i < 12; i++)
+                {
+                    Rectangle alien = new Rectangle(10 + i * 40, 50 + t * 20, 20, 20);
+                    alienRow1.Add(alien);
+                }
+
+                for (int i = 0; i < 12; i++)
+                {
+                    Rectangle alien = new Rectangle(10 + i * 40, 90 + t * 20, 20, 20);
+                    alienRow2.Add(alien);
+                }
+
+                for (int i = 0; i < 12; i++)
+                {
+                    Rectangle alien = new Rectangle(10 + i * 40, 130 + t * 20, 20, 20);
+                    alienRow3.Add(alien);
+                }
+
+                for (int i = 0; i < 12; i++)
+                {
+                    Rectangle alien = new Rectangle(10 + i * 40, 170 + t * 20, 20, 20);
+                    alienRow4.Add(alien);
+                }
+            }
+
+            for (int i = 0; i < alienRow1.Count(); i++)
+            {
+                if (alienRow1[i].Y > 450)
+                {
+                    Death();
+                }
+            }
+
+            for (int i = 0; i < alienRow2.Count(); i++)
+            {
+                if (alienRow2[i].Y > 450)
+                {
+                    Death();
+                }
+            }
+
+            for (int i = 0; i < alienRow3.Count(); i++)
+            {
+                if (alienRow3[i].Y > 450)
+                {
+                    Death();
+                }
+            }
+
+            for (int i = 0; i < alienRow4.Count(); i++)
+            {
+                if (alienRow4[i].Y > 450)
+                {
+                    Death();
+                }
+            }
+        }
+
+        public void alienInterception()
+        {
+            //Checking to see if an alien is hit with a bullet
+            for (int i = 0; i < alienRow1.Count; i++)
+            {
+                if (bullet.IntersectsWith(alienRow1[i]))
+                {
+                    bullet.X = 0;
+                    bullet.Y = -20;
+                    alienRow1.RemoveAt(i);
+                    player.playerScore = player.playerScore + 40;
+                }
+            }
+
+            for (int i = 0; i < alienRow2.Count; i++)
+            {
+                if (bullet.IntersectsWith(alienRow2[i]))
+                {
+                    bullet.X = 0;
+                    bullet.Y = -20;
+                    alienRow2.RemoveAt(i);
+                    player.playerScore = player.playerScore + 20;
+                }
+            }
+
+            for (int i = 0; i < alienRow3.Count; i++)
+            {
+                if (bullet.IntersectsWith(alienRow3[i]))
+                {
+                    bullet.X = 0;
+                    bullet.Y = -20;
+                    alienRow3.RemoveAt(i);
+                    player.playerScore = player.playerScore + 10;
+                }
+            }
+
+            for (int i = 0; i < alienRow4.Count; i++)
+            {
+                if (bullet.IntersectsWith(alienRow4[i]))
+                {
+                    bullet.X = 0;
+                    bullet.Y = -20;
+                    alienRow4.RemoveAt(i);
+                    player.playerScore = player.playerScore + 10;
+                }
+            }
         }
 
         public void alienAttacks()
         {
-            //Random variable to make aliens occasionly fire
-            
+            alienBullet.Y = alienBullet.Y + alienBulletSpeed;
+            int _playerX = Player.playerX;
+            int _playerY = Player.playerY;
+            int _width = Player.width;
+            int _height = Player.height;
+            int _cannonWidth = Player.cannonWidth;
+            int _cannonHeight = Player.cannonHeight;
 
-            
+            Rectangle playerRec = new Rectangle(_playerX, _playerY, _width, _height);
+            Rectangle cannonRec = new Rectangle(_playerX + 15, _playerY - 10, _cannonWidth, _cannonHeight);
 
-            //If alien bullets hit the player reduce players #of lifes
-            //if (alienBullet.IntersectsWith(player) || alienBullet.IntersectsWith(playerCannon))
+            randomFire = alienBullets.Next(1, 151);
+
+            if (randomFire < 5 && alienBullet.Y > 800)
             {
-                if (Aliens.playerLives == 0)
+                if (randomFire == 1 && alienRow1.Count() > 0)
+                {
+                    randColumn = alienRow.Next(0, alienRow1.Count());
+                    alienBullet.X = alienRow1[randColumn].X;
+                    alienBullet.Y = alienRow1[randColumn].Y;
+                }
+                else if (randomFire == 2 && alienRow2.Count() > 0)
+                {
+                    randColumn = alienRow.Next(0, alienRow2.Count());
+                    alienBullet.X = alienRow2[randColumn].X;
+                    alienBullet.Y = alienRow2[randColumn].Y;
+                }
+                else if (randomFire == 3 && alienRow3.Count() > 0)
+                {
+                    randColumn = alienRow.Next(0, alienRow3.Count());
+                    alienBullet.X = alienRow3[randColumn].X;
+                    alienBullet.Y = alienRow3[randColumn].Y;
+                }
+                else if (randomFire == 4 && alienRow4.Count() > 0)
+                {
+                    randColumn = alienRow.Next(0, alienRow4.Count());
+                    alienBullet.X = alienRow4[randColumn].X;
+                    alienBullet.Y = alienRow4[randColumn].Y;
+                }
+            }
+
+            //Random variable to make aliens occasionly fire
+            if (alienBullet.IntersectsWith(playerRec) || alienBullet.IntersectsWith(cannonRec))
+            {
+                playerLives--;
+                alienBullet.X = 1000;
+                alienBullet.Y = 1000;
+
+                if (playerLives == 0)
                 {
                     livesNumber.Text = "0";
                     Death();
                 }
             }
         }
-
-        
 
         public void magicBus()
         {
@@ -220,25 +458,25 @@ namespace SpaceInvadersRemastered
             //Assigning points and moving it off screen if you hit it
             if (mothership.IntersectsWith(bullet) && mothershipPoints == 1)
             {
-                playerScore = playerScore + 200;
+                player.playerScore = player.playerScore + 200;
                 mothership.Y = -50;
             }
 
             if (mothership.IntersectsWith(bullet) && mothershipPoints == 2)
             {
-                playerScore = playerScore + 200;
+                player.playerScore = player.playerScore + 200;
                 mothership.Y = -50;
             }
 
             if (mothership.IntersectsWith(bullet) && mothershipPoints == 3)
             {
-                playerScore = playerScore + 200;
+                player.playerScore = player.playerScore + 200;
                 mothership.Y = -50;
             }
 
             if (mothership.IntersectsWith(bullet) && mothershipPoints == 4)
             {
-                playerScore = playerScore + 200;
+                player.playerScore = player.playerScore + 200;
                 mothership.Y = -50;
             }
 
@@ -615,7 +853,7 @@ namespace SpaceInvadersRemastered
         public void InitializeGame()
         {
             //Setting variables to original
-            playerScore = 0;
+            player.playerScore = 0;
             playerLives = 3;
 
 
@@ -685,7 +923,7 @@ namespace SpaceInvadersRemastered
 
         public void Death()
         {
-            //gameTimer.Stop();
+            gameTimer.Stop();
         }
 
         private void GameScreen_Paint(object sender, PaintEventArgs e)
@@ -713,10 +951,10 @@ namespace SpaceInvadersRemastered
                 e.Graphics.FillRectangle(bunker4Leg2Brush, bunker4Leg2);
 
                 e.Graphics.FillRectangle(whiteBrush, bullet);
-                e.Graphics.FillRectangle(whiteBrush, Aliens.alienBulletX, Aliens.alienBulletY, Aliens.alienBulletWidth, Aliens.alienBulletHeight);
+                e.Graphics.FillRectangle(whiteBrush, alienBulletX, alienBulletY, alienBulletWidth, alienBulletHeight);
 
                 //Drawing alien row 1
-                for (int i = 0; i < alien.alienRow1.Count(); i++)
+                for (int i = 0; i < alienRow1.Count(); i++)
                 {
                     e.Graphics.FillEllipse(whiteBrush, alienRow1[i]);
                 }
